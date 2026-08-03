@@ -29,12 +29,11 @@ router = APIRouter(
 def create_book(
     payload: BookCreate,
     db: Session = Depends(get_db),
-   current_user: User = Depends(
-    require_permission("create_book")
-)
+    current_user: User = Depends(
+        require_permission("create_book")
+    )
 ):
 
-   
     existing_book = db.query(Book).filter(
         Book.isbn == payload.isbn,
         Book.deleted_at.is_(None)
@@ -94,9 +93,9 @@ def get_books(
     sort_by: str = "id",
     sort_order: str = "asc",
     db: Session = Depends(get_db),
-   current_user: User = Depends(
-    require_permission("view_books")
-)
+    current_user: User = Depends(
+        require_permission("view_books")
+    )
 ):
 
     if not current_user:
@@ -187,9 +186,9 @@ def get_books(
 def get_book(
     book_id: int,
     db: Session = Depends(get_db),
-   current_user: User = Depends(
-    require_permission("view_books")
-)
+    current_user: User = Depends(
+        require_permission("view_books")
+    )
 ):
 
     book = db.query(Book).filter(
@@ -230,9 +229,9 @@ def update_book(
     book_id: int,
     payload: BookUpdate,
     db: Session = Depends(get_db),
-   current_user: User = Depends(
-    require_permission("update_book")
-)
+    current_user: User = Depends(
+        require_permission("update_book")
+    )
 ):
 
     book = db.query(Book).filter(
@@ -248,7 +247,7 @@ def update_book(
             data=None
         )
 
-        borrowed_count = (
+    borrowed_count = (
         book.total_copies - book.available_copies
     )
 
@@ -270,12 +269,13 @@ def update_book(
                 data=None
             )
 
-        update_data = payload.model_dump(
-            exclude_unset=True
-        )
+    update_data = payload.model_dump(
+        exclude_unset=True
+    )
 
-        for key, value in update_data.items():
-            setattr(book, key, value)
+    for key, value in update_data.items():
+        setattr(book, key, value)
+
     if payload.total_copies is not None:
 
         if payload.total_copies < borrowed_count:
@@ -319,9 +319,9 @@ def update_book(
 def delete_book(
     book_id: int,
     db: Session = Depends(get_db),
-   current_user: User = Depends(
-    require_permission("delete_book")
-)
+    current_user: User = Depends(
+        require_permission("delete_book")
+    )
 ):
 
     book = db.query(Book).filter(

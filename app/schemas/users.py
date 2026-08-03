@@ -5,7 +5,6 @@ class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: str
 
     @field_validator("name")
     @classmethod
@@ -31,9 +30,43 @@ class UserCreate(BaseModel):
 
         return value
 
+
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    role: str
+
+    class Config:
+        from_attributes = True
+
+
+class UserUpdate(BaseModel):
+    name: str | None = None
+    email: EmailStr | None = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value):
+        if value is None:
+            return value
+
+        value = value.strip()
+
+        if len(value) < 3:
+            raise ValueError(
+                "Name must contain at least 3 characters"
+            )
+
+        return value
+
+
+class UserRoleUpdate(BaseModel):
+    role: str
+
     @field_validator("role")
     @classmethod
-    def validate_role(cls, value: str):
+    def validate_role(cls, value):
         value = value.strip().lower()
 
         allowed_roles = [
@@ -48,13 +81,3 @@ class UserCreate(BaseModel):
             )
 
         return value
-
-
-class UserResponse(BaseModel):
-    id: int
-    name: str
-    email: EmailStr
-    role: str
-
-    class Config:
-        from_attributes = True

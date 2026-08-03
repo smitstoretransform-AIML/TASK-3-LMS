@@ -44,15 +44,17 @@ def register(
             data=None
         )
 
-    role = db.query(Role).filter(
-        Role.name == user.role.capitalize()
+    # Every new user will be registered as Member
+
+    member_role = db.query(Role).filter(
+        Role.name == "Member"
     ).first()
 
-    if not role:
+    if not member_role:
         return api_response(
-            code=400,
+            code=500,
             status="Error",
-            message="Invalid role",
+            message="Member role not found",
             data=None
         )
 
@@ -60,7 +62,7 @@ def register(
         name=user.name,
         email=user.email,
         password_hash=hash_password(user.password),
-        role_id=role.id
+        role_id=member_role.id
     )
 
     db.add(db_user)
@@ -70,15 +72,14 @@ def register(
     return api_response(
         code=201,
         status="Success",
-        message="User created successfully",
+        message="User registered successfully",
         data={
             "id": db_user.id,
             "name": db_user.name,
             "email": db_user.email,
-            "role": role.name
+            "role": member_role.name
         }
     )
-
 
 # Login User
 

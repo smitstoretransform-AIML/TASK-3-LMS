@@ -7,6 +7,7 @@ from app.utils.response import api_response
 
 from app.routers import auth
 from app.routers import books
+from app.routers import users
 
 
 app = FastAPI(title="Library Management System")
@@ -52,3 +53,4 @@ def database_health():
 # Register routers
 app.include_router(auth.router)
 app.include_router(books.router)
+app.include_router(users.router)
