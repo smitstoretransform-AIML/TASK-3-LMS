@@ -1,24 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import hash_password
-from app.models.users import User
-from app.schemas.users import UserCreate, UserResponse
+from app.core.security import (
+    hash_password,
+    verify_password,
+    create_access_token
+)
 
-# pyrefly: ignore [missing-import]
-from app.core.security import verify_password, create_access_token
+from app.core.dependencies import get_current_user
+from app.models.users import User
+from app.models.roles import Role
+
+from app.schemas.users import UserCreate
 from app.schemas.auth import LoginRequest
 
-
 from app.utils.response import api_response
-from app.core.dependencies import get_current_user
+
+
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
 )
 
-#register user
+
+# Register User
 
 @router.post("/register")
 def register(
@@ -38,7 +44,11 @@ def register(
             data=None
         )
 
-    if user.role not in ["admin", "librarian"]:
+    role = db.query(Role).filter(
+        Role.name == user.role.capitalize()
+    ).first()
+
+    if not role:
         return api_response(
             code=400,
             status="Error",
@@ -50,7 +60,7 @@ def register(
         name=user.name,
         email=user.email,
         password_hash=hash_password(user.password),
-        role=user.role
+        role_id=role.id
     )
 
     db.add(db_user)
@@ -58,19 +68,19 @@ def register(
     db.refresh(db_user)
 
     return api_response(
-    code=201,
-    status="Success",
-    message="User created successfully",
-    data={
-        "id": db_user.id,
-        "name": db_user.name,
-        "email": db_user.email,
-        "role": db_user.role
-    }
-)
+        code=201,
+        status="Success",
+        message="User created successfully",
+        data={
+            "id": db_user.id,
+            "name": db_user.name,
+            "email": db_user.email,
+            "role": role.name
+        }
+    )
 
 
-#login user
+# Login User
 
 @router.post("/login")
 def login(
@@ -101,6 +111,10 @@ def login(
             data=None
         )
 
+    role = db.query(Role).filter(
+        Role.id == user.role_id
+    ).first()
+
     access_token = create_access_token(
         data={"sub": str(user.id)}
     )
@@ -116,23 +130,22 @@ def login(
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role
+                "role": role.name
             }
         }
     )
 
 
+# Current User Profile
+
 @router.get("/me")
 def get_me(
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    if not current_user:
-        return api_response(
-            code=401,
-            status="Error",
-            message="Invalid or expired token",
-            data=None
-        )
+    role = db.query(Role).filter(
+        Role.id == current_user.role_id
+    ).first()
 
     return api_response(
         code=200,
@@ -142,6 +155,6 @@ def get_me(
             "id": current_user.id,
             "name": current_user.name,
             "email": current_user.email,
-            "role": current_user.role
+            "role": role.name
         }
     )

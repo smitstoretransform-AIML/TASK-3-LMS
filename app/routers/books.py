@@ -6,7 +6,10 @@ from sqlalchemy import asc, desc, or_
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
+from app.core.dependencies import (
+    get_current_user,
+    require_permission
+)
 from app.models.books import Book
 from app.models.users import User
 from app.schemas.books import BookCreate, BookUpdate
@@ -26,17 +29,12 @@ router = APIRouter(
 def create_book(
     payload: BookCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+   current_user: User = Depends(
+    require_permission("create_book")
+)
 ):
 
-    if not current_user:
-        return api_response(
-            code=401,
-            status="Error",
-            message="Unauthorized",
-            data=None
-        )
-
+   
     existing_book = db.query(Book).filter(
         Book.isbn == payload.isbn,
         Book.deleted_at.is_(None)
@@ -96,7 +94,9 @@ def get_books(
     sort_by: str = "id",
     sort_order: str = "asc",
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+   current_user: User = Depends(
+    require_permission("view_books")
+)
 ):
 
     if not current_user:
@@ -187,7 +187,9 @@ def get_books(
 def get_book(
     book_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+   current_user: User = Depends(
+    require_permission("view_books")
+)
 ):
 
     book = db.query(Book).filter(
@@ -228,7 +230,9 @@ def update_book(
     book_id: int,
     payload: BookUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+   current_user: User = Depends(
+    require_permission("update_book")
+)
 ):
 
     book = db.query(Book).filter(
@@ -315,7 +319,9 @@ def update_book(
 def delete_book(
     book_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+   current_user: User = Depends(
+    require_permission("delete_book")
+)
 ):
 
     book = db.query(Book).filter(

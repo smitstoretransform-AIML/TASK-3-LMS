@@ -36,11 +36,15 @@ class UserCreate(BaseModel):
     def validate_role(cls, value: str):
         value = value.strip().lower()
 
-        allowed_roles = ["admin", "librarian"]
+        allowed_roles = [
+            "admin",
+            "librarian",
+            "member"
+        ]
 
         if value not in allowed_roles:
             raise ValueError(
-                "Role must be either 'admin' or 'librarian'"
+                "Role must be one of: admin, librarian, member"
             )
 
         return value

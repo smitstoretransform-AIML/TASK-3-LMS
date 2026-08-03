@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Column, DateTime, String
+from sqlalchemy import BigInteger, Column, DateTime, String, ForeignKey
 from sqlalchemy.sql import func
 
 from app.core.database import Base
@@ -29,8 +29,9 @@ class User(Base):
         nullable=False
     )
 
-    role = Column(
-        String(20),
+    role_id = Column(
+        BigInteger,
+        ForeignKey("roles.id"),
         nullable=False
     )
 
