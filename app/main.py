@@ -1,3 +1,4 @@
+from app.models import members
 from fastapi import FastAPI
 from sqlalchemy import text
 
@@ -8,7 +9,7 @@ from app.utils.response import api_response
 from app.routers import auth
 from app.routers import books
 from app.routers import users
-
+from app.routers import members
 
 app = FastAPI(title="Library Management System")
 
@@ -54,3 +55,4 @@ def database_health():
 app.include_router(auth.router)
 app.include_router(books.router)
 app.include_router(users.router)
+app.include_router(members.router)
