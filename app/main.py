@@ -10,6 +10,7 @@ from app.routers import auth
 from app.routers import books
 from app.routers import users
 from app.routers import members
+from app.routers import borrow_records
 
 app = FastAPI(title="Library Management System")
 
@@ -56,3 +57,4 @@ app.include_router(auth.router)
 app.include_router(books.router)
 app.include_router(users.router)
 app.include_router(members.router)
+app.include_router(borrow_records.router)

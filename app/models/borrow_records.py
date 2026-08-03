@@ -53,6 +53,12 @@ class BorrowRecord(Base):
         nullable=True
     )
 
+    late_days = Column(
+        BigInteger,
+        nullable=False,
+        server_default="0"
+    )
+
     status = Column(
         String(20),
         nullable=False,
