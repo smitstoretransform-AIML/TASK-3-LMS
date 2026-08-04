@@ -1,3 +1,4 @@
+from app.models import Notification
 from datetime import datetime, timezone
 from math import ceil
 
@@ -59,6 +60,17 @@ def create_book(
     )
 
     db.add(book)
+
+    notification = Notification(
+        user_id=current_user.id,
+        title="New Book Added",
+        message=f"Book '{book.title}' (ID: {book.id}) has been added successfully.",
+        type="book_added",
+        created_by=current_user.id
+    )
+
+    db.add(notification)
+
     db.commit()
     db.refresh(book)
 

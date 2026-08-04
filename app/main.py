@@ -14,6 +14,7 @@ from app.routers import borrow_records
 from app.routers import fines
 from app.routers import dashboard
 from app.routers import reports
+from app.routers import notifications
 
 app = FastAPI(title="Library Management System")
 
@@ -64,3 +65,4 @@ app.include_router(borrow_records.router)
 app.include_router(fines.router)
 app.include_router(dashboard.router)
 app.include_router(reports.router)
+app.include_router(notifications.router)

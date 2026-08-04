@@ -101,6 +101,16 @@ def borrow_book(
 
     db.add(borrow_record)
 
+    notification = Notification(
+        user_id=current_user.id,
+        title="Book Borrowed",
+        message=f"Book '{book.title}' (ID: {book.id}) borrowed by '{member.name}' (ID: {member.id}).",
+        type="book_borrowed",
+        created_by=current_user.id
+    )
+
+    db.add(notification)
+
     db.commit()
     db.refresh(borrow_record)
 
@@ -137,6 +147,7 @@ from app.models.books import Book
 from app.models.members import Member
 from app.models.users import User
 from app.models.fines import Fine
+from app.models.notifications import Notification
 
 from app.schemas.borrow_records import (
     BorrowRecordCreate,
@@ -190,6 +201,18 @@ def borrow_book(
         )
 
     if book.available_copies <= 0:
+
+        notification = Notification(
+            user_id=current_user.id,
+            title="Book Unavailable",
+            message=f"No copies of '{book.title}' are currently available.",
+            type="book_unavailable",
+            created_by=current_user.id
+        )
+
+        db.add(notification)
+        db.commit()
+
         return api_response(
             code=400,
             status="Error",
@@ -311,6 +334,7 @@ def return_book(
     ).first()
 
     if not existing_fine:
+
         fine = Fine(
             borrow_record_id=record.id,
             member_id=record.member_id,
@@ -321,6 +345,32 @@ def return_book(
         )
 
         db.add(fine)
+
+        # Fine notification
+
+        if fine_amount > 0:
+
+            notification = Notification(
+                user_id=current_user.id,
+                title="Fine Generated",
+                message=f"A fine of ₹{fine_amount} has been generated for this return.",
+                type="fine_generated",
+                created_by=current_user.id
+            )
+
+            db.add(notification)
+
+    # Book returned notification
+
+    notification = Notification(
+        user_id=current_user.id,
+        title="Book Returned",
+        message=f"Book '{book.title}' has been returned successfully.",
+        type="book_returned",
+        created_by=current_user.id
+    )
+
+    db.add(notification)
 
     db.commit()
     db.refresh(record)
@@ -341,8 +391,7 @@ def return_book(
             "fine_amount": fine_amount,
             "status": record.status
         }
-    )
-
+)
 
 #get all records
 

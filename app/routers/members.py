@@ -1,3 +1,4 @@
+from app.models import Notification
 from datetime import datetime, timezone
 from math import ceil
 
@@ -56,6 +57,17 @@ def create_member(
     )
 
     db.add(member)
+
+    notification = Notification(
+    user_id=current_user.id,
+    title="New Member Registered",
+    message=f"Member '{member.name}' (ID: {member.id}) has been registered successfully.",
+    type="member_registered",
+    created_by=current_user.id
+    )
+
+    db.add(notification)
+
     db.commit()
     db.refresh(member)
 

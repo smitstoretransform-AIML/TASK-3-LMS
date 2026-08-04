@@ -11,6 +11,7 @@ from app.core.dependencies import require_permission
 from app.models.fines import Fine
 from app.models.members import Member
 from app.models.users import User
+from app.models.notifications import Notification
 
 from app.utils.response import api_response
 
@@ -195,6 +196,20 @@ def pay_fine(
     fine.paid_at = datetime.now(
         timezone.utc
     )
+
+    member = db.query(Member).filter(
+        Member.id == fine.member_id
+    ).first()
+
+    notification = Notification(
+        user_id=current_user.id,
+        title="Fine Paid",
+        message=f"Fine paid successfully by '{member.name}' (ID: {member.id}).",
+        type="fine_paid",
+        created_by=current_user.id
+    )
+
+    db.add(notification)   
 
     db.commit()
     db.refresh(fine)
