@@ -1,3 +1,4 @@
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 
 
@@ -9,10 +10,12 @@ def api_response(
 ):
     return JSONResponse(
         status_code=code,
-        content={
-            "code": code,
-            "status": status,
-            "message": message,
-            "data": data
-        }
+        content=jsonable_encoder(
+            {
+                "code": code,
+                "status": status,
+                "message": message,
+                "data": data
+            }
+        )
     )

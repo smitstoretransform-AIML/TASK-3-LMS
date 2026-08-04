@@ -12,6 +12,7 @@ from app.routers import users
 from app.routers import members
 from app.routers import borrow_records
 from app.routers import fines
+from app.routers import dashboard
 
 app = FastAPI(title="Library Management System")
 
@@ -60,3 +61,4 @@ app.include_router(users.router)
 app.include_router(members.router)
 app.include_router(borrow_records.router)
 app.include_router(fines.router)
+app.include_router(dashboard.router)
