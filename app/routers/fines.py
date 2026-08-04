@@ -1,12 +1,21 @@
 from datetime import datetime, timezone
 from math import ceil
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    Query,
+    BackgroundTasks
+)
 from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import require_permission
+
+from app.utils.notification_service import (
+    create_notification_with_email
+)
 
 from app.models.fines import Fine
 from app.models.members import Member
@@ -165,6 +174,7 @@ def get_fine(
 @router.post("/{fine_id}/pay")
 def pay_fine(
     fine_id: int,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_permission("manage_fines")
@@ -201,15 +211,20 @@ def pay_fine(
         Member.id == fine.member_id
     ).first()
 
-    notification = Notification(
+    create_notification_with_email(
+        db=db,
+        background_tasks=background_tasks,
         user_id=current_user.id,
+        email=member.email,
         title="Fine Paid",
-        message=f"Fine paid successfully by '{member.name}' (ID: {member.id}).",
-        type="fine_paid",
-        created_by=current_user.id
-    )
-
-    db.add(notification)   
+        message=(
+            f"Hello {member.name}, "
+            f"your fine of ₹{fine.fine_amount} "
+            f"has been paid successfully."
+        ),
+    notification_type="fine_paid",
+    created_by=current_user.id
+)  
 
     db.commit()
     db.refresh(fine)

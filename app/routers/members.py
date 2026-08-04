@@ -1,8 +1,12 @@
-from app.models import Notification
 from datetime import datetime, timezone
 from math import ceil
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    Query,
+    BackgroundTasks
+)
 from sqlalchemy import asc, desc, or_
 from sqlalchemy.orm import Session
 
@@ -11,6 +15,10 @@ from app.core.dependencies import require_permission
 
 from app.models.members import Member
 from app.models.users import User
+
+from app.utils.notification_service import (
+    create_notification_with_email
+)
 
 from app.schemas.members import (
     MemberCreate,
@@ -28,6 +36,7 @@ router = APIRouter(
 @router.post("")
 def create_member(
     payload: MemberCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_permission("manage_members")
@@ -58,18 +67,37 @@ def create_member(
 
     db.add(member)
 
-    notification = Notification(
-    user_id=current_user.id,
-    title="New Member Registered",
-    message=f"Member '{member.name}' (ID: {member.id}) has been registered successfully.",
-    type="member_registered",
-    created_by=current_user.id
-    )
+    # notification = Notification(
+    # user_id=current_user.id,
+    # title="New Member Registered",
+    # message=f"Member '{member.name}' (ID: {member.id}) has been registered successfully.",
+    # type="member_registered",
+    # created_by=current_user.id
+    # )
 
-    db.add(notification)
+    # db.add(notification)
 
     db.commit()
     db.refresh(member)
+
+    create_notification_with_email(
+    db=db,
+    background_tasks=background_tasks,
+    user_id=current_user.id,
+    email=member.email,
+    title="Welcome to Library",
+    message=(
+        f"Hello {member.name},\n\n"
+        f"Welcome to our library system.\n"
+        f"Your member ID is {member.id}.\n"
+        f"Membership date: {member.membership_date}.\n\n"
+        f"Happy reading 📚"
+    ),
+    notification_type="member_registered",
+    created_by=current_user.id
+)
+
+    db.commit()
 
     return api_response(
     code=201,

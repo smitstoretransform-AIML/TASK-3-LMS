@@ -16,6 +16,10 @@ from app.routers import dashboard
 from app.routers import reports
 from app.routers import notifications
 
+from app.services.scheduler import (
+    start_scheduler
+)
+
 app = FastAPI(title="Library Management System")
 
 # Register global exception handlers
@@ -55,6 +59,11 @@ def database_health():
             data=None
         )
 
+
+@app.on_event("startup")
+def startup_event():
+
+    start_scheduler()
 
 # Register routers
 app.include_router(auth.router)
